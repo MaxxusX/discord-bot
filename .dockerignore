@@ -1,0 +1,8 @@
+node_modules
+.git
+.gitignore
+.eslintrc.json
+README.md
+example-config.json
+_log.txt
+.vs
