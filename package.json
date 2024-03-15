@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node deploy-commands.js && node index.js"
   },
-  "packageManager": "pnpm@8.15.4",
   "author": "maxxusx",
   "license": "ISC",
+  "packageManager": "pnpm@8.15.4",
   "dependencies": {
     "discord.js": "^14.14.1"
   },
