@@ -10,7 +10,6 @@ module.exports = {
 		const hours = Math.floor((milliseconds / 1000 / 60 / 60) % 24);
 		const minutes = Math.floor((milliseconds / 1000 / 60) % 60);
 		const seconds = Math.floor((milliseconds / 1000) % 60);
-		console.log(interaction.client)
 		await interaction.reply(`Uptime: ${hours}hrs ${minutes}mins and ${seconds}s\nCreated At: ${interaction.client.application.createdAt}`);
 	},
 };

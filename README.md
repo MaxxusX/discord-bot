@@ -1,11 +1,9 @@
 # how to use:
 
-1. install pnpm at https://pnpm.io/installation
+1. rename `example-config.json` to `config.json` 
 
-2. run `pnpm install`
+2. fill out `config.json` with your bot info found at https://discord.com/developers/applications/
 
-3. rename `example-config.json` to `config.json` 
+3. to build, run `docker build --tag discord-bot .`
 
-4. fill out `config.json` with your bot info found at https://discord.com/developers/applications/
-
-5. run `pnpm start`
+4. to start, run `docker run discord-bot`
