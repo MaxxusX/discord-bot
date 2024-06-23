@@ -1,13 +1,13 @@
-﻿const { SlashCommandBuilder } = require('discord.js');
-const cats = require('../../modules/cats.js');
+﻿const { SlashCommandBuilder } = require("discord.js");
+const cats = require("../../modules/cats.js");
 const quotes = [
-	'meow',
-	'mewo',
-	'guh',
-	'kitty',
-	'microwave dinner',
-	'✋: pet  |  🔥: microwave dinner',
-	'uwu',
+	"meow",
+	"mewo",
+	"guh",
+	"kitty",
+	"microwave dinner",
+	"✋: pet  |  🔥: microwave dinner",
+	"uwu",
 ];
 
 function getRandomInt(max) {
@@ -17,8 +17,8 @@ function getRandomInt(max) {
 module.exports = {
 	cooldown: 1,
 	data: new SlashCommandBuilder()
-		.setName('cat')
-		.setDescription('posts a cat(meme)'),
+		.setName("cat")
+		.setDescription("posts a cat(meme)"),
 	async execute(interaction) {
 		await interaction.reply(cats[getRandomInt(cats.length)]);
 		await interaction.channel.send(quotes[getRandomInt(quotes.length)]);
