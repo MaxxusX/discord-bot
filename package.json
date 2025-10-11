@@ -14,17 +14,17 @@
 	"license": "Please see COPYRIGHT.md and TOS.md",
 	"packageManager": "pnpm@9.5.0",
 	"dependencies": {
-		"@discordjs/rest": "^2.3.0",
-		"@dotenvx/dotenvx": "^1.5.0",
-		"bufferutil": "^4.0.8",
-		"discord-api-types": "^0.37.92",
-		"discord.js": "^14.15.3",
-		"utf-8-validate": "^6.0.4"
+		"@discordjs/rest": "^2.6.0",
+		"@dotenvx/dotenvx": "^1.51.0",
+		"bufferutil": "^4.0.9",
+		"discord-api-types": "^0.37.120",
+		"discord.js": "^14.23.2",
+		"utf-8-validate": "^6.0.5"
 	},
 	"devDependencies": {
-		"@stylistic/eslint-plugin-js": "^2.3.0",
-		"eslint": "^9.6.0",
-		"globals": "^15.8.0"
+		"@stylistic/eslint-plugin-js": "^2.13.0",
+		"eslint": "^9.37.0",
+		"globals": "^15.15.0"
 	},
 	"engines": {
 		"node": ">=21.2.0"
