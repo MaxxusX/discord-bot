@@ -1,48 +1,57 @@
 //Maxxinator Bot
 // Require the necessary discord.js classes
-const fs = require("node:fs");
-const path = require("node:path");
-const { Client, Collection, Events, GatewayIntentBits, ActivityType } = require("discord.js");
-const { token } = require("./config.json");
+import { ActivityType, Client, Collection, Events, GatewayIntentBits } from "discord.js";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import * as embeds from "./modules/embeds.js";
+import { writelog } from "./modules/writelog.js";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const logprefix = "\n\n-\n\n";
 
-function logtofile(txt) {
-	txt = "\n" + txt;
-	fs.appendFile("_log.txt", txt, err => {
-		if (err) {
-			console.error(err);
-		}
-		// file written successfully
-	});
-}
+const client = new Client({
+	intents: [
+		// required for a lot of stuff
+		GatewayIntentBits.Guilds,
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+		// for /react
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMessageReactions,
+
+		// for /user
+		GatewayIntentBits.GuildMembers, // privileged
+	],
+	presence: {
+		status: "online",
+		activities: [{ name: "you", type: ActivityType.Watching }],
+	},
+});
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, "commands");
-const commandFolders = fs.readdirSync(foldersPath);
 
-for (const folder of commandFolders) {
+fs.readdirSync(foldersPath).forEach(folder => {
 	const commandsPath = path.join(foldersPath, folder);
 	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".js"));
-	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
-		const command = require(filePath);
+
+	commandFiles.forEach(async file => {
+		const filePath = pathToFileURL(path.join(commandsPath, file));
+		const command = await import(filePath);
+
 		// Set a new item in the Collection with the key as the command name and the value as the exported module
-		if ("data" in command && "execute" in command) {
+		if (Object.hasOwn(command, "data") && Object.hasOwn(command, "execute")) {
 			client.commands.set(command.data.name, command);
 		} else {
-			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-			logtofile(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-		}
-	}
-}
+			console.warn(...await writelog("🟨 A command is missing a required \"data\" and/or \"execute\" property.", {
+				"File Path": filePath.href,
+				"Command Data": command,
+			}));
+		};
+	});
+});
 
-// When the client is ready, run this code (only once)
-// We use 'c' for the event parameter to keep it separate from the already defined 'client'
 client.once(Events.ClientReady, c => {
-	console.log(`Ready! Logged in as ${c.user.tag}`);
-	logtofile(`Ready! Logged in as ${c.user.tag}`);
-	client.user.setPresence({ activities: [{ name: "you", type: ActivityType.Watching }], status: "online" });
+	console.info(logprefix, "Ready! Logged in as", c.user.tag);
 });
 
 client.cooldowns = new Collection();
@@ -53,15 +62,38 @@ client.on(Events.InteractionCreate, async interaction => {
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
+		const guildowner = await interaction.guild.fetchOwner();
+		console.error(...await writelog("🟥 Attempted to execute a command, but it was not found.", {
+			"Command Name": interaction.commandName,
+			"Command Parameters": interaction.options.data.map(cio => [cio.name, cio.value]),
+			"Server Name": interaction.guild.name,
+			"Server ID": interaction.guildId,
+			"Server Owner Display Name": guildowner.user.displayName,
+			"Server Owner Global Name": guildowner.user.globalName,
+			"Server Owner Tag": guildowner.user.tag,
+			"Server Owner ID": guildowner.user.id,
+			"Channel Name": interaction.channel.name,
+			"Channel ID": interaction.channelId,
+			"User Display Name": interaction.user.displayName,
+			"User Global Name": interaction.user.globalName,
+			"User Tag": interaction.user.tag,
+			"User ID": interaction.user.id,
+		}));
+
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({ embeds: [embeds.errors["500"]], ephemeral: true });
+		} else {
+			await interaction.reply({ embeds: [embeds.errors["500"]], ephemeral: true });
+		};
+
 		return;
-	}
+	};
 
 	const { cooldowns } = interaction.client;
 
 	if (!cooldowns.has(command.data.name)) {
 		cooldowns.set(command.data.name, new Collection());
-	}
+	};
 
 	const now = Date.now();
 	const timestamps = cooldowns.get(command.data.name);
@@ -75,31 +107,52 @@ client.on(Events.InteractionCreate, async interaction => {
 			//const expiredTimestamp = Math.round(expirationTime / 1000);
 			//return interaction.reply({ content: `Please wait, you are on a cooldown for \`${command.data.name}\`. You can use it again <t:${expiredTimestamp}:R>.`, ephemeral: true });
 			return interaction.reply({ content: `you can use this command again in ${cooldownAmount / 1000} seconds`, ephemeral: true });
-		}
-	}
+		};
+	};
 
 	timestamps.set(interaction.user.id, now);
 	setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 
 	try {
 		await command.execute(interaction);
-		//console.log(interaction)
-		let parameters = interaction.toString(); // convert to string
-		parameters = parameters.split(" "); // seperate the command and parameters
-		parameters.shift(); // remove the command so its just the parameters
-		parameters.toString().replaceAll(",", " "); // convert back to string
-		console.log(`--------------------------------------------------------------------\nran command: "${interaction.commandName}"\nwith parameters: "${parameters}"\nin server: "${interaction.guild.name}" (${interaction.guildId})\nin channel: "#${interaction.channel.name}" (${interaction.channelId})\nby user: "${interaction.user.tag}" (${interaction.user.id})`);
-		logtofile(`--------------------------------------------------------------------\nran command: "${interaction.commandName}"\nwith parameters: "${parameters}"\nin server: "${interaction.guild.name}" (${interaction.guildId})\nin channel: "#${interaction.channel.name}" (${interaction.channelId})\nby user: "${interaction.user.tag}" (${interaction.user.id})`);
-	} catch (error) {
-		console.error(error);
-		logtofile(error);
+
+		console.log(logprefix, {
+			"command": interaction.commandName,
+			"parameters": interaction.options.data.map(cio => [cio.name, cio.value]),
+			"server": interaction.guild.name,
+			"serverid": interaction.guildId,
+			"channel": interaction.channel.name,
+			"channelid": interaction.channelId,
+			"user": interaction.user.tag,
+			"userid": interaction.user.id,
+		});
+	} catch (e) {
+		const guildowner = await interaction.guild.fetchOwner();
+		console.error(...await writelog("🟥 An error occured during command execution.", {
+			"Error": e,
+			"Command Name": interaction.commandName,
+			"Command Parameters": interaction.options.data.map(cio => [cio.name, cio.value]),
+			"Server Name": interaction.guild.name,
+			"Server ID": interaction.guildId,
+			"Server Owner Display Name": guildowner.user.displayName,
+			"Server Owner Global Name": guildowner.user.globalName,
+			"Server Owner Tag": guildowner.user.tag,
+			"Server Owner ID": guildowner.user.id,
+			"Channel Name": interaction.channel.name,
+			"Channel ID": interaction.channelId,
+			"User Display Name": interaction.user.displayName,
+			"User Global Name": interaction.user.globalName,
+			"User Tag": interaction.user.tag,
+			"User ID": interaction.user.id,
+		}));
+
 		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: "There was an error while executing this command!", ephemeral: true });
+			await interaction.followUp({ embeds: [embeds.errors["500"]], ephemeral: true });
 		} else {
-			await interaction.reply({ content: "There was an error while executing this command!", ephemeral: true });
-		}
-	}
+			await interaction.reply({ embeds: [embeds.errors["500"]], ephemeral: true });
+		};
+	};
 });
 
 // Log in to Discord with your client's token
-client.login(token);
+client.login(process.env.DISCORD_TOKEN);

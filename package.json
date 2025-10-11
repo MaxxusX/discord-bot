@@ -1,26 +1,32 @@
 {
 	"name": "discord-bot",
-	"version": "3.1",
+	"version": "4.0.0",
 	"description": "little discord bot i made",
 	"main": "index.js",
 	"type": "module",
 	"scripts": {
-		"lint": "eslint **/*.js -c eslint.config.js",
-		"start": "node deploy-commands.js && node index.js"
+		"lint": "eslint -c eslint.config.js",
+		"start:actual": "node deploy-commands.js && node index.js",
+		"start": "dotenvx run --env NODE_ENV=production -f .env -- pnpm run start:actual",
+		"dev": "dotenvx run --env NODE_ENV=development -f .env -- pnpm run start:actual"
 	},
 	"author": "maxxusx",
-	"license": "MIT",
-	"packageManager": "pnpm@9.0.3",
+	"license": "Please see COPYRIGHT.md and TOS.md",
+	"packageManager": "pnpm@9.5.0",
 	"dependencies": {
-		"discord.js": "^14.14.1",
-		"uuidv7": "^0.6.3"
+		"@discordjs/rest": "^2.3.0",
+		"@dotenvx/dotenvx": "^1.5.0",
+		"bufferutil": "^4.0.8",
+		"discord-api-types": "^0.37.92",
+		"discord.js": "^14.15.3",
+		"utf-8-validate": "^6.0.4"
 	},
 	"devDependencies": {
-		"@stylistic/eslint-plugin-js": "^1.7.2",
-		"eslint": "^9.0.0",
-		"globals": "^15.0.0"
+		"@stylistic/eslint-plugin-js": "^2.3.0",
+		"eslint": "^9.6.0",
+		"globals": "^15.8.0"
 	},
 	"engines": {
-		"node": ">=21.7.3"
+		"node": ">=21.2.0"
 	}
 }

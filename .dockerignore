@@ -1,8 +1,8 @@
 node_modules
 .git
 .gitignore
-.eslintrc.json
+eslint.config.js
 README.md
-example-config.json
-_log.txt
+log.txt
 .vs
+.vscode

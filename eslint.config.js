@@ -3,23 +3,27 @@ import stylisticjs from "@stylistic/eslint-plugin-js";
 import globals from "globals";
 
 export default [
+	{
+		"ignores": [
+			"node_modules/",
+			".git/",
+		],
+	},
 	js.configs.recommended,
 	{
-		plugins: {
+		"plugins": {
 			"@stylistic/js": stylisticjs,
 		},
-		languageOptions: {
-			ecmaVersion: "latest",
-			sourceType: "module",
-			globals: {
+		"languageOptions": {
+			"ecmaVersion": "latest",
+			"sourceType": "module",
+			"globals": {
 				...globals.node,
-				...globals.es2021,
+				...globals.es2024,
 			},
 		},
-		files: ["**/*.js"],
-		ignores: ["/node_modules", "/.git"],
-		rules: {
-			strict: [
+		"rules": {
+			"strict": [
 				"error",
 				"global",
 			],
@@ -29,7 +33,7 @@ export default [
 			],
 			"@stylistic/js/quote-props": [
 				"error",
-				"as-needed",
+				"consistent",
 			],
 			"@stylistic/js/indent": [
 				"error",
@@ -43,8 +47,8 @@ export default [
 				"error",
 				"always",
 				{
-					omitLastInOneLineBlock: false,
-					omitLastInOneLineClassBody: false,
+					"omitLastInOneLineBlock": false,
+					"omitLastInOneLineClassBody": false,
 				},
 			],
 			"@stylistic/js/no-extra-semi": "off",
